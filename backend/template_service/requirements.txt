@@ -1,0 +1,4 @@
+asyncio
+nats-py
+pyjwt
+pydantic

@@ -1,0 +1,122 @@
+[
+    {
+        "title": "Anamnese",
+        "isMandatory": true,
+        "content": "",
+        "inclusions": [
+            "Pasientens medisinske historie, nåværende og tidligere symptomer, familiehistorie, allergier, livsstilsfaktorer og sosiale forhold som kan påvirke helsen."
+        ],
+        "exclusions": [
+            "Fysiske undersøkelsesfunn, laboratorieresultater og bildediagnostikk."
+        ],
+        "examples": [
+            "Pasienten er en 60 år gammel mann som har opplevd tungpustethet ved moderat fysisk aktivitet de siste seks månedene."
+        ],
+        "isCollapsed": false
+    },
+    {
+        "title": "Funn",
+        "isMandatory": true,
+        "content": "",
+        "inclusions": [
+            "Observasjoner og resultater fra den kliniske undersøkelsen, som vitale tegn, inspeksjon, palpasjon, perkusjon og auskultasjon."
+        ],
+        "exclusions": [
+            "Pasientens rapporterte symptomer og opplevelser (hører til under Anamnese) og laboratorieprøver."
+        ],
+        "examples": [
+            "Ved fysisk undersøkelse auskulteres grove knatrelyder over begge lungelapper."
+        ],
+        "isCollapsed": false
+    },
+    {
+        "title": "Andre us",
+        "isMandatory": false,
+        "content": "",
+        "inclusions": [
+            "Resultater fra bildediagnostikk, EKG, spirometri og andre spesialundersøkelser."
+        ],
+        "exclusions": [
+            "Blodprøver, urinprøver og andre laboratorieanalyser (hører til under Lab)."
+        ],
+        "examples": [
+            "CT av thorax viser infiltrasjoner i nedre lungelapper."
+        ],
+        "isCollapsed": false
+    },
+    {
+        "title": "Lab",
+        "isMandatory": false,
+        "content": "",
+        "inclusions": [
+            "Resultater fra laboratorietester som blod-, urin- og avføringsprøver."
+        ],
+        "exclusions": [
+            "Kliniske funn fra fysisk undersøkelse og resultater fra bildediagnostikk."
+        ],
+        "examples": [
+            "Blodprøver viser forhøyet hvite blodceller på 15 x 10^9/L."
+        ],
+        "isCollapsed": false
+    },
+    {
+        "title": "Vurdering",
+        "isMandatory": true,
+        "content": "",
+        "inclusions": [
+            "Klinisk tolkning av samlede funn, differensialdiagnoser og begrunnelse for eventuell diagnose."
+        ],
+        "exclusions": [
+            "Beskrivelse av tiltak, behandling eller oppfølgingsplan (hører til under Tiltak)."
+        ],
+        "examples": [
+            "Funnene tyder på en mulig bakteriell pneumoni."
+        ],
+        "isCollapsed": false
+    },
+    {
+        "title": "Tiltak",
+        "isMandatory": false,
+        "content": "",
+        "inclusions": [
+            "Planlagte eller igangsatte behandlinger, henvisninger, råd gitt til pasienten og oppfølgingsplaner."
+        ],
+        "exclusions": [
+            "Diagnostiske vurderinger og tolkninger (hører til under Vurdering)."
+        ],
+        "examples": [
+            "Starter behandling med bredspektret antibiotika og planlegger oppfølgingskontroll om en uke."
+        ],
+        "isCollapsed": false
+    },
+    {
+        "title": "Medikasjon",
+        "isMandatory": false,
+        "content": "",
+        "inclusions": [
+            "Oversikt over pasientens nåværende medisiner, doseringer og administrasjonsmåte."
+        ],
+        "exclusions": [
+            "Foreslåtte nye medisiner eller endringer i medisineringen (hører til under Tiltak)."
+        ],
+        "examples": [
+            "Pasienten bruker fast Lisinopril 10 mg daglig for hypertensjon."
+        ],
+        "isCollapsed": false
+    },
+    {
+        "title": "Diagnose",
+        "isMandatory": true,
+        "content": "",
+        "inclusions": [
+            "Endelig diagnose eller foreløpig diagnose basert på vurderingen."
+        ],
+        "exclusions": [
+            "Behandlingsplaner, tiltak eller pasientråd (hører til under Tiltak)."
+        ],
+        "examples": [
+            "Akutt bakteriell pneumoni i nedre lungefelt."
+        ],
+        "isCollapsed": false
+    }
+]

@@ -1,0 +1,105 @@
+# version: '3.8'
+services:
+  # nats:
+  #   image: nats:latest
+  #   ports:
+  #     - '4222:4222'  # NATS client port
+  #     - '6222:6222'  # Clustering port
+  #     - '8222:8222'  # HTTP monitoring port
+  #     - '9222:9222'  # WebSocket port
+  #   command: >
+  #     -js
+  #     -ws
+  #   volumes:
+  #     - nats_data:/data
+
+    ollama:
+      image: ollama/ollama
+      container_name: ollama
+      entrypoint: ["/usr/bin/bash", "/root/.ollama/entrypoint.sh"]
+      ports:
+        - "11434:11434"
+      volumes:
+        - ./models/ollama:/root/.ollama
+      environment:
+        MODELS: ${OLLAMA_INSTALL_MODELS}
+      deploy:
+        resources:
+          reservations:
+            devices:
+              - driver: nvidia
+                count: ${OLLAMA_GPU_COUNT}
+                capabilities: [gpu]
+      restart: unless-stopped
+
+  # authentication_service:
+  #   build: 
+  #     context: ./authentication_service
+  #     additional_contexts:
+  #       assets: ./common
+  #     dockerfile: ./Dockerfile
+  #   environment:
+  #     JWT_SECRET: ${JWT_SECRET}
+  #   # depends_on:
+  #   #   - nats
+
+  # data_service:
+  #   build: 
+  #     context: ./data_service
+  #     additional_contexts:
+  #       assets: ./common
+  #     dockerfile: ./Dockerfile
+  #   environment:
+  #     JWT_SECRET: ${JWT_SECRET}
+    # depends_on:
+    #   - nats
+
+  # recording_service:
+  #   build: 
+  #     context: ./recording_service
+  #     additional_contexts:
+  #       assets: ./common
+  #     dockerfile: ./Dockerfile
+    # depends_on:
+    #   - nats
+
+  # template_service:
+  #   build: 
+  #     context: ./template_service
+  #     additional_contexts:
+  #       assets: ./common
+  #     dockerfile: ./Dockerfile
+  #   environment:
+  #     JWT_SECRET: ${JWT_SECRET}
+    # depends_on:
+    #   - nats
+
+  # transcription_service:
+  #   build: 
+  #     context: ./transcription_service
+  #     additional_contexts:
+  #       assets: ./common
+  #     dockerfile: ./Dockerfile
+    # depends_on:
+    #   - nats
+
+  # summarization_service:
+  #   build: ./summarization_service
+  #   build: 
+  #     context: ./summarization_service
+  #     additional_contexts:
+  #       assets: ./common
+  #     dockerfile: ./Dockerfile
+  #   depends_on:
+  #     - nats
+
+  # frontend:
+  #   build: ./frontend
+  #   ports:
+  #     - '3000:3000'
+  #   depends_on:
+  #     - nats
+
+
+# volumes:
+#   nats_data:
