@@ -1,5 +1,0 @@
-asyncio
-nats-py
-pyjwt
-pydantic
-edgedb
