@@ -3,3 +3,4 @@ nats-py
 bcrypt
 pyjwt
 pydantic
+edgedb

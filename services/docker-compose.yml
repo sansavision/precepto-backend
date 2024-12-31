@@ -1,36 +1,147 @@
-# version: '3.8'
 services:
-  # nats:
+  # na_1:
   #   image: nats:latest
   #   ports:
+  #     #- '6222:6222'  # Clustering port
+  #     #- '8222:8222'  # HTTP monitoring port
   #     - '4222:4222'  # NATS client port
-  #     - '6222:6222'  # Clustering port
-  #     - '8222:8222'  # HTTP monitoring port
   #     - '9222:9222'  # WebSocket port
-  #   command: >
-  #     -js
-  #     -ws
+  #   command: "-c /etc/precepto/server.conf --name na_1 -p 4222"
+  #   environment: 
+  #   - WS_PORT=9222
+  #   # command: >
+  #   #   -js
+  #   #   -ws
   #   volumes:
-  #     - nats_data:/data
+  #     - ./nats:/data
+  #     - ./nats/server.conf:/etc/precepto/server.conf
+  #   networks:  ["nats"]
 
-    ollama:
-      image: ollama/ollama
-      container_name: ollama
-      entrypoint: ["/usr/bin/bash", "/root/.ollama/entrypoint.sh"]
-      ports:
-        - "11434:11434"
-      volumes:
-        - ./models/ollama:/root/.ollama
-      environment:
-        MODELS: ${OLLAMA_INSTALL_MODELS}
-      deploy:
-        resources:
-          reservations:
-            devices:
-              - driver: nvidia
-                count: ${OLLAMA_GPU_COUNT}
-                capabilities: [gpu]
-      restart: unless-stopped
+  # na_2:
+  #     image: nats:latest
+  #     ports:
+  #       #- '6222:6222'  # Clustering port
+  #       #- '8222:8222'  # HTTP monitoring port
+  #       - '4223:4223'  # NATS client port
+  #       - '9223:9223'  # WebSocket port
+  #     command: "-c /etc/precepto/server.conf --name na_2 -p 4223"
+  #     environment: 
+  #     - WS_PORT=9223
+  #     # command: >
+  #     #   -js
+  #     #   -ws
+  #     volumes:
+  #       - ./nats:/data
+  #       - ./nats/server.conf:/etc/precepto/server.conf
+  #     depends_on: ["na_1"]
+  #     networks:  ["nats"]
+
+
+  edgedb:
+    image: edgedb/edgedb
+    environment:
+      EDGEDB_SERVER_SECURITY: insecure_dev_mode
+      EDGEDB_SERVER_PASSWORD: ${EDGEDB_SERVER_PASSWORD}
+    volumes:
+      - ./edgedb:/var/lib/edgedb/data
+    ports:
+      - "5656:5656"
+
+  # precepto-db:
+  #   image: mongo:latest
+  #   container_name: auth_mongo
+  #   restart: always
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+  #     MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+  #     MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - ./mongo:/data/db
+  #   # depends_on: ["na_1", "na_2"]  
+  #   networks:  ["nats"]
+
+
+  # tabbyapi:
+  #   # Uncomment this to build a docker image from source
+  #   #build:
+  #   #  context: ..
+  #   #  dockerfile: ./docker/Dockerfile
+
+  #   # Comment this to build a docker image from source
+  #   image: ghcr.io/theroyallab/tabbyapi:latest
+  #   ports:
+  #     - "5000:5000"
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://127.0.0.1:5000/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #   environment:
+  #     - NAME=TabbyAPI
+  #     - NVIDIA_VISIBLE_DEVICES=all
+  #   volumes:
+  #     - ./models/tabby/models:/app/models                            # Change me
+  #     - ./models/tabby/templates:/app/templates                            # Change me
+  #     - ./models/tabby/config.yml:/app/config.yml               # Change me
+  #     # - /path/to/api_tokens.yml:/app/api_tokens.yml       # Change me
+  #   networks:  ["nats"]
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: all
+  #             capabilities: [gpu]
+  
+  lammacpp:
+#   docker run -v /path/to/models:/models -p 8000:8000 ghcr.io/ggerganov/llama.cpp:server 
+    image: ghcr.io/ggerganov/llama.cpp:server-cuda
+    ports:
+      - "5000:5000"
+    command: "-m models/Gemma2/gemma-2-9b-it-WPO-HB.Q8_0.gguf --port 5000 --host 0.0.0.0 -n 2048 -ngl 999"
+    # command: "-m models/Gemma/gemma-2-27b-it-SimPO-37K-IQ3_XS.gguf --port 5000 --host 0.0.0.0 -n 2048 -ngl 999"
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://127.0.0.1:5000/health"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    environment:
+      # - NAME=TabbyAPI
+      - NVIDIA_VISIBLE_DEVICES=all
+    volumes:
+      - ./models/llama/models:/app/models                            # Change me
+      # - ./models/llama/config.yml:/app/config.yml               # Change me
+      # - /path/to/api_tokens.yml:/app/api_tokens.yml       # Change me
+    networks:  ["nats"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+
+  # ollama:
+  #   image: ollama/ollama
+  #   container_name: ollama
+  #   entrypoint: ["/usr/bin/bash", "/root/.ollama/entrypoint.sh"]
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ./models/ollama:/root/.ollama
+  #   environment:
+  #     MODELS: ${OLLAMA_INSTALL_MODELS}
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: ${OLLAMA_GPU_COUNT}
+  #             capabilities: [gpu]
+  #   restart: unless-stopped
 
   # authentication_service:
   #   build: 
@@ -40,8 +151,12 @@ services:
   #     dockerfile: ./Dockerfile
   #   environment:
   #     JWT_SECRET: ${JWT_SECRET}
-  #   # depends_on:
-  #   #   - nats
+  #     MONGO_URI: ${MONGO_URI}
+  #     MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+  #     NATS_URL: ${NATS_URL}
+  #   depends_on:
+  #     - precepto-db
+  #   networks:  ["nats"]
 
   # data_service:
   #   build: 
@@ -51,8 +166,8 @@ services:
   #     dockerfile: ./Dockerfile
   #   environment:
   #     JWT_SECRET: ${JWT_SECRET}
-    # depends_on:
-    #   - nats
+  #   depends_on:
+  #     - na_1
 
   # recording_service:
   #   build: 
@@ -60,8 +175,8 @@ services:
   #     additional_contexts:
   #       assets: ./common
   #     dockerfile: ./Dockerfile
-    # depends_on:
-    #   - nats
+  #   depends_on:
+  #     - na_1
 
   # template_service:
   #   build: 
@@ -71,8 +186,8 @@ services:
   #     dockerfile: ./Dockerfile
   #   environment:
   #     JWT_SECRET: ${JWT_SECRET}
-    # depends_on:
-    #   - nats
+  #   depends_on:
+  #     - na_1
 
   # transcription_service:
   #   build: 
@@ -81,7 +196,7 @@ services:
   #       assets: ./common
   #     dockerfile: ./Dockerfile
     # depends_on:
-    #   - nats
+    #   - na_1
 
   # summarization_service:
   #   build: ./summarization_service
@@ -91,15 +206,30 @@ services:
   #       assets: ./common
   #     dockerfile: ./Dockerfile
   #   depends_on:
-  #     - nats
+  #     - na_1
 
   # frontend:
   #   build: ./frontend
   #   ports:
   #     - '3000:3000'
   #   depends_on:
-  #     - nats
+  #     - na_1
 
 
 # volumes:
 #   nats_data:
+
+networks:
+  nats:
+    name: nats
+    # external: true
+
+# networks:
+#   default:
+#     # external: true
+#     # ipv4_address: ${DOCKER_SUBNET}1
+
+
+
+
+# edgedb-py --dir ./common/queries

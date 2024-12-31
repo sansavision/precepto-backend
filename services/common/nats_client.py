@@ -3,19 +3,26 @@ import asyncio
 import json
 from nats.aio.client import Client as NATS
 from nats.js.errors import BucketNotFoundError, APIError, NotFoundError
-from nats.js.api import StreamConfig, StreamInfo
-# from nats.js.api import KeyValue
-
+from nats.js.api import StreamConfig
 import os
 import sys
+import logging
+from typing import List, Optional
+
+# Adjust the parent directory for module imports
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
 from common.models import User, TranscriptTemplate, TranscriptionMeta
-import logging
-from typing import List, Optional
 
+logging.basicConfig(level=logging.INFO)
+
+if os.environ.get('PROD_MODE',"false") == 'false':
+    # only in dev
+    from dotenv import load_dotenv
+    load_dotenv(dotenv_path=os.path.join(os.path.pardir,".env"))
+    
 class NATSClient:
     def __init__(self, loop=None):
         self.loop = loop or asyncio.get_event_loop()
@@ -24,11 +31,15 @@ class NATSClient:
         self.kv_users: Optional[any] = None
         self.kv_templates: Optional[any] = None
         self.kv_transcriptions: Optional[any] = None
-        self.kv_templates: Optional[any] = None
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.nats_url = json.loads('["nats://nats1.sansadev.com:4222", "nats://nats2.sansadev.com:4223", "nats://nats3.sansadev.com:4224"]')
+        self.nats_url = json.loads(os.environ.get('NATS_URL', [
+            #"nats://na_1:4222",
+            #"nats://na_2:4223",
+            "nats://localhost:4222",
+            "nats://localhost:4223",
+        ]))
 
-    async def delete_stream(self, name_string:str):
+    async def delete_stream(self, name_string: str):
         stream_name = name_string
         try:
             await self.js.delete_stream(stream_name)
@@ -39,30 +50,21 @@ class NATSClient:
         except Exception as e:
             logging.error(f"Unexpected error while deleting stream '{stream_name}': {e}")
             raise
-    async def connect(self, servers=["nats://localhost:4222"]):
+
+    async def connect(self, servers=None):
+        servers = servers or self.nats_url
         try:
-            await self.nc.connect(servers=self.nats_url ) # loop=self.loop
+            print("before connect nats")
+            await self.nc.connect(servers=servers)
+            print("before connect jetstream")
             self.js = self.nc.jetstream()
             self.logger.info("Connected to NATS")
-
-            # # Create the stream if it doesn't exist
-            # await self.create_stream()
-
-            # # Create or access the KV bucket
-            # await self.setup_kv_bucket()
 
         except Exception as e:
             self.logger.error(f"Error connecting to NATS: {e}")
             raise
 
-        # # Initialize KV stores
-        # self.kv_users = await self.js.key_value(bucket='users')
-        # self.kv_templates = await self.js.key_value(bucket='templates')
-        # self.kv_transcriptions = await self.js.key_value(bucket='transcriptions')
-
-    async def create_stream(self, name_string:str, subjects_list: List[str]):
-        # stream_name = "precepto_authentication_service"
-        # subjects = ["precepto.auth.*"]
+    async def create_stream(self, name_string: str, subjects_list: List[str]):
         stream_name = name_string
         subjects = subjects_list
 
@@ -80,7 +82,6 @@ class NATSClient:
                 max_msgs=100000,
                 max_bytes=1_000_000_000,  # 1 GB
                 max_age=72 * 3600,  # 72 hours in seconds
-                # dup_window=120,  # 2 minutes in seconds
             )
 
             try:
@@ -93,13 +94,11 @@ class NATSClient:
                 logging.error(f"Unexpected error while creating stream '{stream_name}': {e}")
                 raise
 
-    async def setup_kv_bucket(self,name:str):
+    async def setup_kv_bucket(self, name: str):
         bucket_name = name
         kv = None
         try:
-            # Attempt to access the KV bucket
-            # self.kv_users = await self.js.key_value(bucket=bucket_name)
-            kv = await self.js.create_key_value(bucket=bucket_name)
+            kv = await self.js.key_value(bucket=bucket_name)
             logging.info(f"KV bucket '{bucket_name}' accessed successfully.")
             return kv
         except NotFoundError:
@@ -142,8 +141,8 @@ class NATSClient:
         except Exception as e:
             self.logger.error(f"Failed to delete key '{key}' from KV store: {e}")
 
-    async def subscribe(self, subject: str, callback):
-        await self.nc.subscribe(subject, cb=callback)
+    async def subscribe(self, subject: str, cb):
+        await self.nc.subscribe(subject, cb=cb)
         self.logger.info(f"Subscribed to subject: {subject}")
 
     async def publish(self, subject: str, message: str, headers=None):
@@ -153,68 +152,3 @@ class NATSClient:
     async def close(self):
         await self.nc.close()
         self.logger.info("Disconnected from NATS")
-
-
-
-
-
-    # async def create_stream(self):
-    #     stream_name = "precepto_authentication_service"
-    #     subjects = ["precepto.auth.*"]
-
-    #     try:
-    #         # Check if the stream already exists
-    #         stream_info = await self.js.stream_info(stream_name)
-    #         logging.info(f"Stream '{stream_name}' already exists.")
-    #     except NotFoundError:
-    #         # Stream does not exist, create it
-    #         stream_config = StreamConfig(
-    #             name=stream_name,
-    #             subjects=subjects,
-    #             storage="file",  # Options: "file" or "memory"
-    #             retention="limits",  # Options: "limits", "interest", "workqueue"
-    #             max_msgs=100000,
-    #             max_bytes=1_000_000_000,  # 1 GB
-    #             max_age=72 * 3600,  # 72 hours in seconds
-    #             # dup_window=120,  # 2 minutes in seconds
-    #         )
-
-    #         try:
-    #             await self.js.add_stream(stream_config)
-    #             logging.info(f"Stream '{stream_name}' created successfully.")
-    #         except APIError as e:
-    #             logging.error(f"APIError while creating stream '{stream_name}': {e}")
-    #             raise
-    #         except Exception as e:
-    #             logging.error(f"Unexpected error while creating stream '{stream_name}': {e}")
-    #             raise
-
-
-
-
-        # async def setup_kv_bucket(self):
-    #     bucket_name = "users"
-
-    #     try:
-    #         # Attempt to access the KV bucket
-    #         # self.kv_users = await self.js.key_value(bucket=bucket_name)
-    #         self.kv_users = await self.js.create_key_value(bucket=bucket_name)
-    #         logging.info(f"KV bucket '{bucket_name}' accessed successfully.")
-    #     except NotFoundError:
-    #         # KV bucket does not exist, create it
-    #         logging.info(f"KV bucket '{bucket_name}' not found. Creating it.")
-    #         try:
-    #             self.kv_users = await self.js.create_key_value(bucket=bucket_name)
-    #             logging.info(f"KV bucket '{bucket_name}' created successfully.")
-    #         except APIError as e:
-    #             logging.error(f"APIError while creating KV bucket '{bucket_name}': {e}")
-    #             raise
-    #         except Exception as e:
-    #             logging.error(f"Unexpected error while creating KV bucket '{bucket_name}': {e}")
-    #             raise
-    #     except APIError as e:
-    #         logging.error(f"APIError while accessing KV bucket '{bucket_name}': {e}")
-    #         raise
-    #     except Exception as e:
-    #         logging.error(f"Unexpected error while accessing KV bucket '{bucket_name}': {e}")
-    #         raise

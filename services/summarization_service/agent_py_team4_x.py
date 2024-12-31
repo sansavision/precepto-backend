@@ -13,44 +13,44 @@ logger = logging.getLogger(__name__)
 import logfire
 
 logfire.configure() 
-class Entry(BaseModel):
-    timestamp: str = Field(
-        ...,
-        description="Timestamp in format 'number-number' or '???' for missing information",
-        examples=["12.34-15.67", "???"]
-    )
-    description: str = Field(
-        ...,
-        description="Medical observation, finding, or action taken during this time period",
-        min_length=1
-    )
+# class Entry(BaseModel):
+#     timestamp: str = Field(
+#         ...,
+#         description="Timestamp in format 'number-number' or '???' for missing information",
+#         examples=["12.34-15.67", "???"]
+#     )
+#     description: str = Field(
+#         ...,
+#         description="Medical observation, finding, or action taken during this time period",
+#         min_length=1
+#     )
 
-class Section(BaseModel):
-    section: str = Field(
-        ...,
-        description="Name of the clinical note section",
-        examples=["Anamnese", "Funn", "Vurdering"]
-    )
-    content: List[Entry] = Field(
-        ...,
-        description="List of timestamped entries in this section",
-        min_items=1
-    )
-    isMandatory: bool = Field(
-        default=False,
-        description="Whether this section must be present in the note"
-    )
+# class Section(BaseModel):
+#     section: str = Field(
+#         ...,
+#         description="Name of the clinical note section",
+#         examples=["Anamnese", "Funn", "Vurdering"]
+#     )
+#     content: List[Entry] = Field(
+#         ...,
+#         description="List of timestamped entries in this section",
+#         min_items=1
+#     )
+#     isMandatory: bool = Field(
+#         default=False,
+#         description="Whether this section must be present in the note"
+#     )
 
-class Note(BaseModel):
-    title: str = Field(
-        default="Clinical Note",
-        description="Title of the clinical note"
-    )
-    content: List[Section] = Field(
-        ...,
-        description="List of sections containing medical information",
-        min_items=1
-    )
+# class Note(BaseModel):
+#     title: str = Field(
+#         default="Clinical Note",
+#         description="Title of the clinical note"
+#     )
+#     content: List[Section] = Field(
+#         ...,
+#         description="List of sections containing medical information",
+#         min_items=1
+#     )
 
 @dataclass
 class SummarizationDeps:
@@ -63,8 +63,8 @@ agent = Agent(
     'test',
     # result_type=Note,
     deps_type=SummarizationDeps,
-    retries=1,
-    result_retries=1,
+    # retries=1,
+    # result_retries=1,
     model_settings={"top_p": 0.95, "temperature":0.0},
     # end_strategy="exhaustive",
     defer_model_check=True,
@@ -108,44 +108,44 @@ def extract_json(response: str) -> dict:
         except Exception as e:
             raise ValueError("Unable to parse the LLM output as JSON or Python dict") from e
 
-@agent.result_validator
-async def validate_result(ctx: RunContext[SummarizationDeps], result: Note) -> Note:
-    print("Validating result \n")
-    print(result)
+# @agent.result_validator
+# async def validate_result(ctx: RunContext[SummarizationDeps], result: Note) -> Note:
+#     print("Validating result \n")
+#     print(result)
  
-    if isinstance(result, Note):
-        print("Result is Note Success \n")
-        return result
-    try:
-        # # Remove leading/trailing whitespace
-        # response = result.strip()
-        # # Check if the response starts with ```json and ends with ```
-        # if response.startswith("```json") and response.endswith("```"):
-        #     # Remove the first line and the last line
-        #     lines = response.split("\n")
-        #     # Typically the first line is ```json and the last line is ```
-        #     # Join everything in between
-        #     json_str = "\n".join(lines[1:-1])
-        # else:
-        #     # If formatting is different, adjust accordingly
-        #     json_str = response
-        # json.loads(json_str)
-        data = extract_json(result) 
-        # Convert the dict to a Note instance using Pydantic
-        r = Note.model_validate(data)
-        print("After parse result \n")
-        print(r," \n")
-        logger.info(f"Result after parse logger: {r}")
-        if r is None:
-            print(f"Unexpected model response After parse result: \n")
-            raise ModelRetry(f"Please try again and make sure to follow the instructions. the output is not a Note")
-        return r
-    except Exception as e:
-        print(f"Unexpected model response exception After parse result error----xxxxxx----xxxxxxx: \n")
-        print(f"{e}")
-        print(f"Unexpected model response exception After parse result: \n")
-        print(f"{result}")
-        raise ModelRetry(f"Please try again and make sure to follow the instructions. the output is not a Note, {e}")
+#     if isinstance(result, Note):
+#         print("Result is Note Success \n")
+#         return result
+#     try:
+#         # # Remove leading/trailing whitespace
+#         # response = result.strip()
+#         # # Check if the response starts with ```json and ends with ```
+#         # if response.startswith("```json") and response.endswith("```"):
+#         #     # Remove the first line and the last line
+#         #     lines = response.split("\n")
+#         #     # Typically the first line is ```json and the last line is ```
+#         #     # Join everything in between
+#         #     json_str = "\n".join(lines[1:-1])
+#         # else:
+#         #     # If formatting is different, adjust accordingly
+#         #     json_str = response
+#         # json.loads(json_str)
+#         data = extract_json(result) 
+#         # Convert the dict to a Note instance using Pydantic
+#         r = Note.model_validate(data)
+#         print("After parse result \n")
+#         print(r," \n")
+#         logger.info(f"Result after parse logger: {r}")
+#         if r is None:
+#             print(f"Unexpected model response After parse result: \n")
+#             raise ModelRetry(f"Please try again and make sure to follow the instructions. the output is not a Note")
+#         return r
+#     except Exception as e:
+#         print(f"Unexpected model response exception After parse result error----xxxxxx----xxxxxxx: \n")
+#         print(f"{e}")
+#         print(f"Unexpected model response exception After parse result: \n")
+#         print(f"{result}")
+#         raise ModelRetry(f"Please try again and make sure to follow the instructions. the output is not a Note, {e}")
 
 class SummarizationWorkflow:
     def __init__(self, llm_config: Dict[str, Any]):
@@ -154,7 +154,7 @@ class SummarizationWorkflow:
         client = AsyncOpenAI(
             api_key=base_config.get("api_key", ""),
             base_url=base_config.get("base_url", ""),
-            _strict_response_validation=True
+            # _strict_response_validation=True
         )
  
         self.model = OpenAIModel(
@@ -191,36 +191,26 @@ class SummarizationWorkflow:
         return normalized, section_info
 
     # @staticmethod
-    def _normalize_template(self,template: Dict[str, Any]) -> Dict[str, Any]:
+    def _normalize_template(self, template: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Normalize template structure and validate required sections."""
         try:
             normalized = {
-                "title": template.get("title", "Clinical Note"),
+                "title": "Clinical Note",
                 "content": []
             }
             
             mandatory_sections = set()
-            for section in template["content"]:
+            for section in template:
                 if section.get("isMandatory"):
-                    mandatory_sections.add(section["section"])
+                    mandatory_sections.add(section["title"])
                 
                 normalized_section = {
-                    "section": section["section"],
+                    "section": section["title"],
                     "isMandatory": section.get("isMandatory", False),
                     "content": []
                 }
                 
-                for entry in section["content"]:
-                    if isinstance(entry, dict):
-                        if "timestamp" in entry and "description" in entry:
-                            normalized_section["content"].append(entry)
-                        else:
-                            for timestamp, description in entry.items():
-                                normalized_section["content"].append({
-                                    "timestamp": timestamp,
-                                    "description": description
-                                })
-                
+                # Add section to normalized template
                 normalized["content"].append(normalized_section)
             
             # Validate all mandatory sections are present
@@ -231,47 +221,47 @@ class SummarizationWorkflow:
             
         except Exception as e:
             raise ModelRetry(f"Template normalization failed: {str(e)}")
-    async def _validate_note(self, note: Note, ctx: RunContext[SummarizationDeps], section_info: Dict[str, Dict]) -> None:
-        """Validate note structure and content."""
-        issues = []
+    # async def _validate_note(self, note: Note, ctx: RunContext[SummarizationDeps], section_info: Dict[str, Dict]) -> None:
+    #     """Validate note structure and content."""
+    #     issues = []
         
-        # Check sections
-        found_sections = {section.section for section in note.content}
-        required_sections = {name for name, info in section_info.items() 
-                           if info["isMandatory"]}
+    #     # Check sections
+    #     found_sections = {section.section for section in note.content}
+    #     required_sections = {name for name, info in section_info.items() 
+    #                        if info["isMandatory"]}
         
-        if missing := required_sections - found_sections:
-            raise ModelRetry(f"Missing required sections: {', '.join(missing)}")
+    #     if missing := required_sections - found_sections:
+    #         raise ModelRetry(f"Missing required sections: {', '.join(missing)}")
             
-        # Check section names
-        invalid_sections = found_sections - section_info.keys()
-        if invalid_sections:
-            raise ModelRetry(f"Invalid section names: {', '.join(invalid_sections)}")
+    #     # Check section names
+    #     invalid_sections = found_sections - section_info.keys()
+    #     if invalid_sections:
+    #         raise ModelRetry(f"Invalid section names: {', '.join(invalid_sections)}")
 
-        # Validate order and timestamps
-        for section in note.content:
-            # Check section order
-            if section.section in section_info:
-                section_order = section_info[section.section]["order"]
+    #     # Validate order and timestamps
+    #     for section in note.content:
+    #         # Check section order
+    #         if section.section in section_info:
+    #             section_order = section_info[section.section]["order"]
                 
-                # Validate timestamps
-                for entry in section.content:
-                    if entry.timestamp != "???":
-                        try:
-                            start, end = map(float, entry.timestamp.split("-"))
-                            if start >= end:
-                                issues.append(
-                                    f"Invalid timestamp range in {section.section}: {entry.timestamp}"
-                                )
-                        except (ValueError, AttributeError):
-                            issues.append(
-                                f"Malformed timestamp in {section.section}: {entry.timestamp}"
-                            )
+    #             # Validate timestamps
+    #             for entry in section.content:
+    #                 if entry.timestamp != "???":
+    #                     try:
+    #                         start, end = map(float, entry.timestamp.split("-"))
+    #                         if start >= end:
+    #                             issues.append(
+    #                                 f"Invalid timestamp range in {section.section}: {entry.timestamp}"
+    #                             )
+    #                     except (ValueError, AttributeError):
+    #                         issues.append(
+    #                             f"Malformed timestamp in {section.section}: {entry.timestamp}"
+    #                         )
 
-        if issues:
-            raise ModelRetry("\n".join(issues))
+    #     if issues:
+    #         raise ModelRetry("\n".join(issues))
 
-
+            # - Timestamps must be "number-number" or "???"
     @agent.system_prompt
     async def get_system_prompt(ctx: RunContext[SummarizationDeps]) -> str:
         r = dedent(f"""
@@ -281,7 +271,7 @@ class SummarizationWorkflow:
             - Use exact section names from the template
             - Use only information from the transcript
             - Use professional medical terminology in Norwegian
-            - Timestamps must be "number-number" or "???"
+
             - If content is marked as mandatory but there is no relevant information it must be "???"
             - All mandatory sections must have content
             - No informal dialogue or questions
@@ -325,20 +315,22 @@ class SummarizationWorkflow:
             )
             print("Agent result: \n")
             print(result)
-            if isinstance(result.data, Note):
-                # return result.data.note.model_dump()
-                yield result.data
-                # try:
-                #     await self._validate_note(result.data.note, result.context, section_info)
-                #     yield json.dumps(result.data.note.model_dump(), indent=2)
-                # except ModelRetry as e:
-                #     yield f"Validation failed: {str(e)}"
-            else:
-                yield f"Failed to generate note: {result.data.error_message}"
-                if result.data.issues:
-                    yield "\nIssues found:"
-                    for issue in result.data.issues:
-                        yield f"- {issue}"
+            yield result.data
+            # if isinstance(result.data, Note):
+            # if isinstance(result.data, BaseModel):
+            #     # return result.data.note.model_dump()
+            #     yield result.data
+            #     # try:
+            #     #     await self._validate_note(result.data.note, result.context, section_info)
+            #     #     yield json.dumps(result.data.note.model_dump(), indent=2)
+            #     # except ModelRetry as e:
+            #     #     yield f"Validation failed: {str(e)}"
+            # else:
+            #     yield f"Failed to generate note: {result.data.error_message}"
+            #     if result.data.issues:
+            #         yield "\nIssues found:"
+            #         for issue in result.data.issues:
+            #             yield f"- {issue}"
 
         except UnexpectedModelBehavior as e:
             logger.error(f"Model behavior error: {str(e)}")

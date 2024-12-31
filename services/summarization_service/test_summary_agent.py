@@ -18,10 +18,19 @@ class TestSummarizationService(unittest.TestCase):
                 # "model": "gemma-9",
                 # "model": "phi-4",
                 # "model": "gemma2-9b-it",
-                "model": "gemma2:9b-instruct-q8_0",
+                # "model": "gemma2:9b-instruct-q8_0",
+                # "model": "bartowski/Marco-o1-exl2",
+                # "model": "Marco-o1-exl2",
+                # "model": "Phi4",
+                "model": "Gemma",
                 # "base_url": "http://localhost:8004/v1",
-                "base_url": "http://localhost:11434/v1",
-                "api_key": "test123",
+                # "base_url": "http://172.20.0.1:5000/v1/completions",
+                "base_url": "http://localhost:5000/v1",
+                # "base_url": "http://172.20.0.1:5000",
+                # "base_url": "http://localhost:5000",
+                # "base_url": "http://127.0.0.1:5000/",
+                # "base_url": "http://localhost:11434/v1",
+                "api_key": "e9cde95b10b268f36a93fe002aa97c39",
                 "api_type": "openai",
                 "temperature": 0,
                 "top_p": 0.950,
@@ -58,6 +67,29 @@ class TestSummarizationService(unittest.TestCase):
         )
     async def test_generate_summary(self):
         self.setUp()
+        t_long = """
+0.00-5.00:   Jeg har hatt smerter i brystet de siste dagene, særlig når jeg går opp trapper eller gjør noe fysisk anstrengende. 
+5.00-11.40:  Kan jeg beskrive smertene? De føles trykkende, og noen ganger stråler de mot venstre skulder og opp i nakken.
+11.40-16.70:  Det oppstår ofte sammen med kortpustethet og svette. Jeg kjenner også at jeg blir litt svimmel.
+16.70-23.35:  Jeg har røykt noen sigaretter om dagen i flere år, og faren min hadde hjerteinfarkt da han var 57. Jeg vet at jeg har høyt blodtrykk.
+23.35-28.25:  Før vi går videre, vil jeg gjøre en grundig undersøkelse av deg: Vi skal måle blodtrykket, sjekke oksygenmetningen og lytte på hjertet og lungene.
+28.25-35.00:  Blodtrykket blir målt, og det er 150/95. Pulsoximeteret viser en oksygenmetning på 97 % ved romluft.
+35.00-40.50:  Jeg lytter nå på hjertet ditt. Hjertelydene er regelmessige, S1 og S2 høres tydelig og det er ingen bilyder (murmurs).
+40.50-45.75:  Jeg lytter på lungene dine med stetoskopet. Pusten er ren bilateralt, uten ralinger, pipelyder eller andre unormale lyder.
+45.75-52.60:  Pulsen din er jevn og ligger rundt 82 slag i minuttet. Du virker litt anspent, men ingen akutte funn utenom det forhøyede blodtrykket.
+52.60-59.80:  Jeg ønsker også å ta et EKG for å se etter tegn til iskemi. La meg koble deg opp, dette tar bare et lite øyeblikk.
+59.80-66.10:  EKG-resultatene viser enkelte ST-depresjoner i laterale avledninger, noe som kan indikere mulig angina pectoris.
+66.10-71.70:  Jeg vil i tillegg ta noen blodprøver, inkludert troponin, for å se om det er tegn til hjertemuskelbelastning.
+71.70-78.00:  Siden du har flere risikofaktorer – blant annet røykingen, familiehistorie med hjerteinfarkt og høyt blodtrykk – bør vi være ekstra forsiktige.
+78.00-84.75:  Jeg vil starte deg på en betablokker for å avlaste hjertet, samt foreskrive nitroglyserin ved behov om smertene kommer tilbake.
+84.75-91.20:  Vi bør også snakke om livsstil. Det er viktig at du forsøker å slutte å røyke og reduserer saltinntaket. Litt forsiktig mosjon kan også hjelpe.
+91.20-96.90:  Siden EKG-et viser mulig iskemi, anbefaler jeg at vi legger deg inn på sykehuset for videre vurdering. De kan ta flere prøver og gjøre et arbeids-EKG.
+96.90-104.40:  På sykehuset kan de også gjøre en ultralyd av hjertet for å se hvordan hjertemuskelen pumper, og eventuelt en koronar angiografi hvis det er mistanke om tette årer.
+104.40-109.25:  Jeg skriver en henvisning med funnene så langt. Ambulansen kommer for å hente deg snart, så får du en grundig utredning.
+109.25-115.80:  Husk å si ifra dersom smertene skulle forverre seg, eller hvis du opplever tung pust eller svimmelhet før du blir hentet.
+115.80-120.95:  Det kan være skremmende, men det er viktig å få undersøkt dette nøye for å forebygge alvorlige komplikasjoner.
+120.95-128.00:  Lykke til, jeg følger opp i etterkant når du er utskrevet fra sykehuset, og vi kan sette opp en plan for videre behandling.
+"""
         transcript = """
         8.84-15.76:  Jeg har hatt vondt i brystet de siste par dagene, spesielt når jeg går opp trapper.
         15.76-29.95:  Forstår. Kan du beskrive smerten nærmere? Er den skarp, trykkende eller brennende? Det føles mest trykkende, som om noe tynger brystet mitt.
@@ -198,7 +230,8 @@ class TestSummarizationService(unittest.TestCase):
         
         # responses = list(await self.workflow.run(transcript, template))
         # responses = list(self.workflow.run(transcript, template))
-        async for result in self.workflow.run(transcript, template):
+        # async for result in self.workflow.run(transcript, template):
+        async for result in self.workflow.run(t_long, template):
             print("\nGenerated summary:")
             print("Responses:",result)
         # responses = await self.service.generate_summary(transcript, template)
