@@ -1,3 +1,7 @@
 /audio_chunks
 /services/audio_chunks
 /services/models
+/services/nats
+/services/mongo
+/services/edgedb
+/services/transcriptions
